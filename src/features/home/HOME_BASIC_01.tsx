@@ -140,9 +140,9 @@ export default function HOME_BASIC_01() {
         <button
           type="button"
           onClick={() => setIsCurationOpen(true)}
-          className="inline-flex w-fit items-center gap-2 rounded-full bg-gradient-to-r from-violet-50 via-white to-rose-50 px-4 py-2.5 text-xs font-bold text-violet-900 shadow-lg ring-1 ring-violet-200/80 transition-transform active:scale-95"
+          className="inline-flex w-fit items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-rose-500 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-violet-500/25 transition-transform active:scale-95"
         >
-          <Pill className="h-4 w-4 shrink-0 text-violet-500" aria-hidden />
+          <Pill className="h-4 w-4 shrink-0 text-white/95" aria-hidden />
           오늘의 미식 처방전 💊
         </button>
       </div>

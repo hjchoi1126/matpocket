@@ -1,6 +1,31 @@
-export type CurationMood = "excited" | "tired" | "stressed" | "lethargic";
-export type CurationWith = "solo" | "friends" | "boss" | "family";
-export type CurationTaste = "spicy" | "warm" | "sweet" | "light";
+export type CurationMood =
+  | "excited"
+  | "tired"
+  | "stressed"
+  | "lethargic"
+  | "happy"
+  | "sad"
+  | "hungry"
+  | "romantic"
+  | "celebratory";
+export type CurationWith =
+  | "solo"
+  | "friends"
+  | "boss"
+  | "family"
+  | "couple"
+  | "date"
+  | "kids";
+export type CurationTaste =
+  | "spicy"
+  | "warm"
+  | "sweet"
+  | "light"
+  | "crispy"
+  | "meaty"
+  | "noodle"
+  | "seafood"
+  | "cheesy";
 
 export type CurationSelection = {
   mood: CurationMood;
@@ -16,23 +41,36 @@ export type CurationPrescription = {
 
 export const CURATION_MOOD_OPTIONS = [
   { id: "excited" as const, label: "🥳 신남" },
+  { id: "happy" as const, label: "😊 기분 좋음" },
   { id: "tired" as const, label: "😮‍💨 지침/피곤" },
   { id: "stressed" as const, label: "😡 스트레스" },
+  { id: "sad" as const, label: "😢 우울/속상" },
   { id: "lethargic" as const, label: "🫠 무기력" },
+  { id: "hungry" as const, label: "🤤 배고픔 폭발" },
+  { id: "romantic" as const, label: "💕 설렘" },
+  { id: "celebratory" as const, label: "🎊 축하/기념" },
 ];
 
 export const CURATION_WITH_OPTIONS = [
   { id: "solo" as const, label: "👤 혼밥" },
   { id: "friends" as const, label: "👥 친구/동료" },
-  { id: "boss" as const, label: "🧑‍💼 임원/회식" },
+  { id: "couple" as const, label: "💑 연인/데이트" },
+  { id: "date" as const, label: "💌 소개팅/썸" },
   { id: "family" as const, label: "🏠 가족" },
+  { id: "kids" as const, label: "👶 아이 동반" },
+  { id: "boss" as const, label: "🧑‍💼 임원/회식" },
 ];
 
 export const CURATION_TASTE_OPTIONS = [
   { id: "spicy" as const, label: "🌶️ 매콤" },
   { id: "warm" as const, label: "🍲 뜨끈/국물" },
   { id: "sweet" as const, label: "🍰 달달" },
-  { id: "light" as const, label: "🌿 깔끔/헤비하지 않음" },
+  { id: "light" as const, label: "🌿 깔끔/가벼움" },
+  { id: "crispy" as const, label: "🍗 바삯/튀김" },
+  { id: "meaty" as const, label: "🥩 고기듬뿍" },
+  { id: "noodle" as const, label: "🍜 면요리" },
+  { id: "seafood" as const, label: "🦐 해산물" },
+  { id: "cheesy" as const, label: "🧀 치즈/진한맛" },
 ];
 
 type PrescriptionRule = {
@@ -252,6 +290,296 @@ const PRESCRIPTION_RULES: PrescriptionRule[] = [
     ],
   },
   {
+    match: (s) => s.mood === "sad" && s.taste === "warm",
+    prescriptions: [
+      {
+        menu: "콩나물국밥",
+        comment: "속상한 마음을 따뜻한 국물로 감싸 주는 처방입니다.",
+        searchKeyword: "콩나물국밥",
+      },
+      {
+        menu: "육개장",
+        comment: "얼큰한 국물로 오늘의 무거운 기분을 녹여 보세요.",
+        searchKeyword: "육개장",
+      },
+    ],
+  },
+  {
+    match: (s) => s.mood === "happy" && s.taste === "sweet",
+    prescriptions: [
+      {
+        menu: "수플레 팬케이크",
+        comment: "기분 좋은 날, 달콤함을 한껏 업그레이드!",
+        searchKeyword: "팬케이크",
+      },
+      {
+        menu: "티라미수",
+        comment: "행복한 기분에 딱 맞는 달콤한 리워드 메뉴예요.",
+        searchKeyword: "티라미수",
+      },
+    ],
+  },
+  {
+    match: (s) => s.mood === "hungry" && s.taste === "meaty",
+    prescriptions: [
+      {
+        menu: "삼겹살",
+        comment: "배고픔 폭발엔 고기가 답! 오늘은 실컷 드세요.",
+        searchKeyword: "삼겹살",
+      },
+      {
+        menu: "양념갈비",
+        comment: "허기진 날엔 푸짐한 고기 한 상이 최고예요.",
+        searchKeyword: "양념갈비",
+      },
+    ],
+  },
+  {
+    match: (s) => s.mood === "romantic" && s.with === "couple",
+    prescriptions: [
+      {
+        menu: "파스타 & 와인",
+        comment: "설레는 분위기에 어울리는 로맨틱 디너 처방!",
+        searchKeyword: "파스타",
+      },
+      {
+        menu: "스테이크",
+        comment: "특별한 날, 둘만의 분위기를 살려 줄 메뉴예요.",
+        searchKeyword: "스테이크",
+      },
+    ],
+  },
+  {
+    match: (s) => s.mood === "celebratory" && s.with === "friends",
+    prescriptions: [
+      {
+        menu: "보쌈 + 막걸리",
+        comment: "축하할 일엔 푸짐하게! 분위기 띄우기 좋아요.",
+        searchKeyword: "보쌈",
+      },
+      {
+        menu: "족발",
+        comment: "기념일엔 나눠 먹기 좋은 든든한 축하 메뉴!",
+        searchKeyword: "족발",
+      },
+    ],
+  },
+  {
+    match: (s) => s.with === "couple" && s.taste === "sweet",
+    prescriptions: [
+      {
+        menu: "마카롱 & 티",
+        comment: "달콤한 디저트 데이트로 분위기 살려 보세요.",
+        searchKeyword: "마카롱",
+      },
+      {
+        menu: "크로와상 샌드",
+        comment: "연인과 가볍게 즐기기 좋은 달콤한 브런치!",
+        searchKeyword: "브런치",
+      },
+    ],
+  },
+  {
+    match: (s) => s.with === "date" && s.taste === "light",
+    prescriptions: [
+      {
+        menu: "샤브샤브",
+        comment: "부담 없이 대화하기 좋은 깔끔한 데이트 메뉴!",
+        searchKeyword: "샤브샤브",
+      },
+      {
+        menu: "연어 덮밥",
+        comment: "첫 만남에도 실패 없는 담백한 한 끼예요.",
+        searchKeyword: "연어덮밥",
+      },
+    ],
+  },
+  {
+    match: (s) => s.with === "kids" && s.taste === "crispy",
+    prescriptions: [
+      {
+        menu: "돈까스",
+        comment: "아이도 어른도 좋아하는 바삯한 국민 메뉴!",
+        searchKeyword: "돈까스",
+      },
+      {
+        menu: "치킨",
+        comment: "아이 동반 식사에 실패 없는 바삯한 선택!",
+        searchKeyword: "치킨",
+      },
+    ],
+  },
+  {
+    match: (s) => s.with === "kids" && s.taste === "warm",
+    prescriptions: [
+      {
+        menu: "우동",
+        comment: "아이 입맛에도 부드럽고 따뜻한 메뉴예요.",
+        searchKeyword: "우동",
+      },
+      {
+        menu: "순두부찌개",
+        comment: "맵지 않게 즐기기 좋은 가족 외식 메뉴!",
+        searchKeyword: "순두부찌개",
+      },
+    ],
+  },
+  {
+    match: (s) => s.taste === "crispy",
+    prescriptions: [
+      {
+        menu: "치킨",
+        comment: "바삯한 식감이 땡길 땐 역시 이거죠!",
+        searchKeyword: "치킨",
+      },
+      {
+        menu: "튀김 정식",
+        comment: "튀김 옷에 행복이 바삭하게 튀겨져 있어요.",
+        searchKeyword: "튀김",
+      },
+    ],
+  },
+  {
+    match: (s) => s.taste === "meaty",
+    prescriptions: [
+      {
+        menu: "소고기 구이",
+        comment: "고기 듬뿍! 오늘은 단백질로 충전하세요.",
+        searchKeyword: "소고기 구이",
+      },
+      {
+        menu: "수육",
+        comment: "푸짐한 고기 한 점이 주는 만족감, 최고예요.",
+        searchKeyword: "수육",
+      },
+    ],
+  },
+  {
+    match: (s) => s.taste === "noodle",
+    prescriptions: [
+      {
+        menu: "라멘",
+        comment: "면 요리가 당길 땐 진한 국물 라멘이 정답!",
+        searchKeyword: "라멘",
+      },
+      {
+        menu: "짜장면",
+        comment: "면 + 소스의 조합, 실패 없는 클래식이에요.",
+        searchKeyword: "짜장면",
+      },
+    ],
+  },
+  {
+    match: (s) => s.taste === "seafood",
+    prescriptions: [
+      {
+        menu: "회",
+        comment: "싱싱한 해산물로 오늘 기분 전환해 보세요!",
+        searchKeyword: "회",
+      },
+      {
+        menu: "해물탕",
+        comment: "바다 향 가득, 해산물이 땡기는 날의 처방!",
+        searchKeyword: "해물탕",
+      },
+    ],
+  },
+  {
+    match: (s) => s.taste === "cheesy",
+    prescriptions: [
+      {
+        menu: "치즈 피자",
+        comment: "치즈 늘어나는 순간, 기분도 같이 올라가요!",
+        searchKeyword: "피자",
+      },
+      {
+        menu: "까보나라",
+        comment: "진한 치즈 풍미로 만족감 충전 처방!",
+        searchKeyword: "까보나라",
+      },
+    ],
+  },
+  {
+    match: (s) => s.mood === "romantic",
+    prescriptions: [
+      {
+        menu: "리조또",
+        comment: "은은한 분위기에 어울리는 부드러운 한 끼!",
+        searchKeyword: "리조또",
+      },
+    ],
+  },
+  {
+    match: (s) => s.mood === "celebratory",
+    prescriptions: [
+      {
+        menu: "랍스터 요리",
+        comment: "축하할 날엔 평소보다 한 단계 위의 메뉴로!",
+        searchKeyword: "랍스터",
+      },
+    ],
+  },
+  {
+    match: (s) => s.mood === "hungry",
+    prescriptions: [
+      {
+        menu: "뷔페",
+        comment: "배고픔 폭발엔 다양하게 즐길 수 있는 뷔페!",
+        searchKeyword: "뷔페",
+      },
+    ],
+  },
+  {
+    match: (s) => s.mood === "sad",
+    prescriptions: [
+      {
+        menu: "카레",
+        comment: "든든하게 먹으며 오늘을 조금 더 편하게 보내요.",
+        searchKeyword: "카레",
+      },
+    ],
+  },
+  {
+    match: (s) => s.mood === "happy",
+    prescriptions: [
+      {
+        menu: "타코",
+        comment: "기분 좋은 날, 색다른 맛으로 기분 더 업!",
+        searchKeyword: "타코",
+      },
+    ],
+  },
+  {
+    match: (s) => s.with === "couple",
+    prescriptions: [
+      {
+        menu: "이탈리안",
+        comment: "둘이 함께 즐기기 좋은 데이트 코스 메뉴!",
+        searchKeyword: "이탈리안",
+      },
+    ],
+  },
+  {
+    match: (s) => s.with === "date",
+    prescriptions: [
+      {
+        menu: "분위기 좋은 카페 브런치",
+        comment: "부담 없이 대화하기 좋은 데이트 메뉴예요.",
+        searchKeyword: "브런치 카페",
+      },
+    ],
+  },
+  {
+    match: (s) => s.with === "kids",
+    prescriptions: [
+      {
+        menu: "떡볶이 + 튀김",
+        comment: "아이와 함께 즐기기 좋은 편한 메뉴!",
+        searchKeyword: "떡볶이",
+      },
+    ],
+  },
+  {
     match: (s) => s.taste === "spicy",
     prescriptions: [
       {
@@ -338,5 +666,13 @@ export function GetCurationShuffleMenusLogic1(): string[] {
     "칼국수",
     "일식 코스",
     "크로플",
+    "삼겹살",
+    "돈까스",
+    "라멘",
+    "해물탕",
+    "피자",
+    "짜장면",
+    "스테이크",
+    "회",
   ];
 }
