@@ -25,8 +25,8 @@ function BuildNotificationOptions(
     body:
       data.body ??
       "어? 저장해 두신 맛집이 바로 근처에 있어요!",
-    icon: "/icons/icon-192x192.svg",
-    badge: "/icons/icon-192x192.svg",
+    icon: "/icons/icon-192x192.png",
+    badge: "/icons/icon-192x192.png",
     tag: data.tag ?? (data.placeId ? `geofence-${data.placeId}` : "geofence"),
     data: {
       url: data.url ?? "/map",
