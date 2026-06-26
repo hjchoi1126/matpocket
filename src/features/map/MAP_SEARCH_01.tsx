@@ -1,6 +1,7 @@
 "use client";
 
-import { Loader2, MapPin, Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
+import FolderSelectField from "@/components/features/FolderSelectField";
 import { useMapSearch01F } from "@/features/map/MAP_SEARCH_01F";
 
 type MapSearch01Props = {
@@ -19,6 +20,11 @@ export default function MAP_SEARCH_01({ initialQuery = "" }: MapSearch01Props) {
     isMapReady,
     isLoadingLocation,
     savingPlaceId,
+    folders,
+    isLoadingFolders,
+    selectedFolderId,
+    setSelectedFolderId,
+    HandleFolderCreated,
     errorMessage,
     statusMessage,
     HandleSearch,
@@ -72,6 +78,18 @@ export default function MAP_SEARCH_01({ initialQuery = "" }: MapSearch01Props) {
       </div>
 
       <section className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        {places.length > 0 && (
+          <div className="mb-4 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+            <FolderSelectField
+              folders={folders}
+              value={selectedFolderId}
+              isLoading={isLoadingFolders}
+              onChange={setSelectedFolderId}
+              onFolderCreated={HandleFolderCreated}
+            />
+          </div>
+        )}
+
         {errorMessage && (
           <p className="mb-3 whitespace-pre-wrap break-words rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
             {errorMessage}

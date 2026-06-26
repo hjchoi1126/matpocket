@@ -12,8 +12,10 @@ import {
   RelayoutKakaoMapLogic1,
   WaitForMapContainerLogic1,
 } from "@/lib/kakaoMap";
+import { LoadFoldersLogic1 } from "@/features/folders/FolderLogic1";
 import { SearchLogic1 } from "@/features/map/SearchLogic1";
 import { LoadSavedIdsLogic1, SaveLogic1 } from "@/features/map/SaveLogic1";
+import type { Folder } from "@/types/folder";
 import type { GeoPosition, KakaoPlace } from "@/types/restaurant";
 
 export function useMapSearch01F(initialQuery = "") {
@@ -32,6 +34,9 @@ export function useMapSearch01F(initialQuery = "") {
   const [isMapReady, setIsMapReady] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [savingPlaceId, setSavingPlaceId] = useState<string | null>(null);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [isLoadingFolders, setIsLoadingFolders] = useState(true);
+  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -158,6 +163,17 @@ export function useMapSearch01F(initialQuery = "") {
     void LoadSavedIdsLogic1().then(setSavedPlaceIds);
   }, []);
 
+  useEffect(() => {
+    void LoadFoldersLogic1().then((result) => {
+      setFolders(result.folders);
+      setIsLoadingFolders(false);
+    });
+  }, []);
+
+  const HandleFolderCreated = useCallback((folder: Folder) => {
+    setFolders((prev) => [folder, ...prev]);
+  }, []);
+
   const RunSearchLogic1 = useCallback(
     async (searchQuery: string) => {
       const trimmedQuery = searchQuery.trim();
@@ -229,7 +245,7 @@ export function useMapSearch01F(initialQuery = "") {
     setErrorMessage(null);
     setStatusMessage(null);
 
-    const result = await SaveLogic1(place);
+    const result = await SaveLogic1(place, selectedFolderId);
 
     setSavingPlaceId(null);
 
@@ -238,9 +254,14 @@ export function useMapSearch01F(initialQuery = "") {
       return;
     }
 
-    setSavedPlaceIds((prev) => new Set(prev).add(place.id));
-    setStatusMessage(`"${place.place_name}"을(를) 저장했습니다.`);
-  }, []);
+    setSavedPlaceIds((prev) => new Set(prev).add(place.place_url));
+    const folderName = folders.find((folder) => folder.id === selectedFolderId)?.name;
+    setStatusMessage(
+      folderName
+        ? `"${place.place_name}"을(를) "${folderName}" 폴더에 저장했습니다.`
+        : `"${place.place_name}"을(를) 저장했습니다.`,
+    );
+  }, [folders, selectedFolderId]);
 
   return {
     mapContainerRef,
@@ -253,6 +274,11 @@ export function useMapSearch01F(initialQuery = "") {
     isMapReady,
     isLoadingLocation,
     savingPlaceId,
+    folders,
+    isLoadingFolders,
+    selectedFolderId,
+    setSelectedFolderId,
+    HandleFolderCreated,
     errorMessage,
     statusMessage,
     HandleSearch,

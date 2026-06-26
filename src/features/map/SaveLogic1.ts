@@ -8,7 +8,10 @@ type SaveLogic1Result = {
   error?: string;
 };
 
-export async function SaveLogic1(place: KakaoPlace): Promise<SaveLogic1Result> {
+export async function SaveLogic1(
+  place: KakaoPlace,
+  folderId?: number | null,
+): Promise<SaveLogic1Result> {
   try {
     const supabase = CreateSupabaseClient();
 
@@ -26,6 +29,7 @@ export async function SaveLogic1(place: KakaoPlace): Promise<SaveLogic1Result> {
         link_url: place.place_url || null,
         is_public: false,
         visited: false,
+        folder_id: folderId ?? null,
       })
       .select()
       .single();
