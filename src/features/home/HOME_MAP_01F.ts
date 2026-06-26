@@ -6,25 +6,53 @@ import { CreatePlaceMarkerImageLogic1 } from "@/lib/kakaoMarker";
 import {
   AttachMapResizeObserverLogic1,
   CreateKakaoMapLogic1,
-  RelayoutKakaoMapLogic1,
   WaitForMapContainerLogic1,
 } from "@/lib/kakaoMap";
 import type { GeoPosition } from "@/types/restaurant";
 import type { Place } from "@/types/place";
 
+type MarkerListener = {
+  marker: kakao.maps.Marker;
+  listener: () => void;
+};
+
 export function useHomeMap01F(places: Place[]) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<kakao.maps.Map | null>(null);
   const markersRef = useRef<kakao.maps.Marker[]>([]);
+  const markerListenersRef = useRef<MarkerListener[]>([]);
 
   const [position, setPosition] = useState<GeoPosition | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
 
   const ClearMarkers = useCallback(() => {
-    markersRef.current.forEach((marker) => marker.setMap(null));
+    markerListenersRef.current.forEach(({ marker, listener }) => {
+      window.kakao.maps.event.removeListener(marker, "click", listener);
+      marker.setMap(null);
+    });
+    markerListenersRef.current = [];
     markersRef.current = [];
+  }, []);
+
+  const HandleSelectPlace = useCallback((place: Place) => {
+    setSelectedPlace(place);
+
+    if (
+      mapRef.current &&
+      place.latitude != null &&
+      place.longitude != null
+    ) {
+      mapRef.current.setCenter(
+        new window.kakao.maps.LatLng(place.latitude, place.longitude),
+      );
+    }
+  }, []);
+
+  const HandleClosePlaceSheet = useCallback(() => {
+    setSelectedPlace(null);
   }, []);
 
   const RenderMarkersLogic1 = useCallback(
@@ -45,10 +73,16 @@ export function useHomeMap01F(places: Place[]) {
           image: CreatePlaceMarkerImageLogic1(Boolean(place.visited)),
         });
 
+        const listener = () => {
+          HandleSelectPlace(place);
+        };
+
+        window.kakao.maps.event.addListener(marker, "click", listener);
         markersRef.current.push(marker);
+        markerListenersRef.current.push({ marker, listener });
       });
     },
-    [ClearMarkers],
+    [ClearMarkers, HandleSelectPlace],
   );
 
   useEffect(() => {
@@ -133,6 +167,15 @@ export function useHomeMap01F(places: Place[]) {
   }, [isMapReady, places, RenderMarkersLogic1]);
 
   useEffect(() => {
+    if (!selectedPlace) return;
+
+    const updatedPlace = places.find((place) => place.id === selectedPlace.id);
+    if (updatedPlace) {
+      setSelectedPlace(updatedPlace);
+    }
+  }, [places, selectedPlace]);
+
+  useEffect(() => {
     if (!isMapReady || !mapRef.current) return;
 
     const HandleResize = () => {
@@ -148,5 +191,7 @@ export function useHomeMap01F(places: Place[]) {
     isMapReady,
     isLoadingLocation,
     mapError,
+    selectedPlace,
+    HandleClosePlaceSheet,
   };
 }

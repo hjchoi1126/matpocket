@@ -6,6 +6,7 @@ import RouletteModal from "@/components/features/RouletteModal";
 import CurationModal from "@/components/features/CurationModal";
 import GeoNotifierHeaderButton from "@/components/features/GeoNotifierHeaderButton";
 import { useHomeBasic01F } from "@/features/home/HOME_BASIC_01F";
+import HOME_PLACE_SHEET_01 from "@/features/home/HOME_PLACE_SHEET_01";
 import { useHomeMap01F } from "@/features/home/HOME_MAP_01F";
 
 export default function HOME_BASIC_01() {
@@ -22,7 +23,7 @@ export default function HOME_BASIC_01() {
     setIsCurationOpen,
   } = useHomeBasic01F();
 
-  const { mapContainerRef, isMapReady, isLoadingLocation, mapError } =
+  const { mapContainerRef, isMapReady, isLoadingLocation, mapError, selectedPlace, HandleClosePlaceSheet } =
     useHomeMap01F(savedPlaces);
 
   return (
@@ -148,6 +149,12 @@ export default function HOME_BASIC_01() {
       >
         <Plus className="h-7 w-7" strokeWidth={2.5} aria-hidden />
       </button>
+
+      <HOME_PLACE_SHEET_01
+        place={selectedPlace}
+        isOpen={selectedPlace != null}
+        onClose={HandleClosePlaceSheet}
+      />
       </div>
     </div>
   );

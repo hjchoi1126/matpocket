@@ -22,6 +22,18 @@ declare global {
         ) => kakao.maps.MarkerImage;
         Size: new (width: number, height: number) => kakao.maps.Size;
         Point: new (x: number, y: number) => kakao.maps.Point;
+        event: {
+          addListener: (
+            target: kakao.maps.Marker,
+            type: "click",
+            handler: () => void,
+          ) => void;
+          removeListener: (
+            target: kakao.maps.Marker,
+            type: "click",
+            handler: () => void,
+          ) => void;
+        };
       };
     };
   }
