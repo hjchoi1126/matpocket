@@ -1,21 +1,28 @@
 export type LadderMatrix = boolean[][];
 
 export const DEFAULT_LADDER_RESULTS = [
-  "💸 오늘 독박",
-  "🎉 면제",
-  "☕ 커피 쏘기",
-  "🍺 2차 담당",
+  "오늘 독박",
+  "면제",
+  "커피쏘기",
+  "2차담당",
 ];
 
-export function GenerateLadderMatrixLogic1(
+export function GetLadderColumnCountLogic1(
   participantCount: number,
+  resultCount: number,
+): number {
+  return Math.max(participantCount, resultCount, 2);
+}
+
+export function GenerateLadderMatrixLogic1(
+  columnCount: number,
   rowCount = 12,
 ): LadderMatrix {
-  if (participantCount < 2) {
+  if (columnCount < 2) {
     return [];
   }
 
-  const bridgeCount = participantCount - 1;
+  const bridgeCount = columnCount - 1;
   const matrix: LadderMatrix = [];
 
   for (let row = 0; row < rowCount; row += 1) {
@@ -72,7 +79,12 @@ export function BuildLadderResultsLogic1(
     ? customResults
     : DEFAULT_LADDER_RESULTS;
 
-  return Array.from({ length: participantCount }, (_, index) => {
-    return source[index % source.length] ?? `결과 ${index + 1}`;
+  const columnCount = GetLadderColumnCountLogic1(
+    participantCount,
+    source.length,
+  );
+
+  return Array.from({ length: columnCount }, (_, index) => {
+    return source[index] ?? "";
   });
 }

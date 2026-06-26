@@ -10,14 +10,24 @@ export type PlayGameCard = {
 
 export const PLAY_GAME_CARDS: PlayGameCard[] = [
   {
-    id: "worldcup",
-    emoji: "🏆",
-    title: "장소 월드컵 (토너먼트)",
+    id: "ladder",
+    emoji: "🪜",
+    title: "사다리 타기",
     description:
-      "내가 저장한 후보지들로 토너먼트를 열어 팀원들의 진짜 표심을 확인하세요!",
-    href: "/play/worldcup",
-    ctaLabel: "방 개설하기 🚀",
-    accentClass: "from-amber-50 to-orange-50 ring-amber-100",
+      "참가자와 결과 항목을 정한 뒤, 사다리타기로 당첨자를 뽑는 복불복 게임",
+    href: "/play/ladder",
+    ctaLabel: "시작하기 🎲",
+    accentClass: "from-sky-50 to-cyan-50 ring-sky-100",
+  },
+  {
+    id: "spinwheel",
+    emoji: "🎡",
+    title: "돌려돌려 돌림판",
+    description:
+      "항목을 직접 넣고 돌림판을 돌려 오늘의 당첨자·벌칙·면제를 뽑는 게임",
+    href: "/play/spinwheel",
+    ctaLabel: "시작하기 🎲",
+    accentClass: "from-amber-50 to-yellow-50 ring-amber-100",
   },
   {
     id: "roulette",
@@ -30,6 +40,16 @@ export const PLAY_GAME_CARDS: PlayGameCard[] = [
     accentClass: "from-rose-50 to-red-50 ring-rose-100",
   },
   {
+    id: "worldcup",
+    emoji: "🏆",
+    title: "장소 월드컵 (토너먼트)",
+    description:
+      "내가 저장한 후보지들로 토너먼트를 열어 팀원들의 진짜 표심을 확인하세요!",
+    href: "/play/worldcup",
+    ctaLabel: "방 개설하기 🚀",
+    accentClass: "from-amber-50 to-orange-50 ring-amber-100",
+  },
+  {
     id: "trivia",
     emoji: "🧩",
     title: "미식 취향 싱크로율 테스트",
@@ -38,15 +58,5 @@ export const PLAY_GAME_CARDS: PlayGameCard[] = [
     href: "/play/trivia",
     ctaLabel: "방 개설하기 🚀",
     accentClass: "from-violet-50 to-purple-50 ring-violet-100",
-  },
-  {
-    id: "ladder",
-    emoji: "🪜",
-    title: "2차 영수증 사다리타기",
-    description:
-      "독박부터 면제까지! 사다리타기로 정하는 유쾌한 더치페이 복불복 예능 게임",
-    href: "/play/ladder",
-    ctaLabel: "시작하기 🎲",
-    accentClass: "from-sky-50 to-cyan-50 ring-sky-100",
   },
 ];
