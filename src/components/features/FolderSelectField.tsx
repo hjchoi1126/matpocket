@@ -72,7 +72,7 @@ export default function FolderSelectField({
         <option value="">폴더 없이 저장</option>
         {folders.map((folder) => (
           <option key={folder.id} value={folder.id}>
-            {folder.name}
+            {folder.is_shared ? `👥 ${folder.name}` : folder.name}
           </option>
         ))}
         <option value={NEW_FOLDER_VALUE}>+ 새 폴더 추가</option>
