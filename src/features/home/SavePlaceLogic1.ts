@@ -77,30 +77,25 @@ export async function LoadPlacesLogic1(): Promise<{
   try {
     const supabase = CreateSupabaseClient();
     const userId = GetLocalUserId();
-    const memberFolderIds = userId ? await GetMemberFolderIdsLogic1(userId) : [];
 
-    let query = supabase
-      .from("places")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (userId && memberFolderIds.length > 0) {
-      query = query.or(
-        `user_id.eq.${userId},folder_id.in.(${memberFolderIds.join(",")})`,
-      );
-    } else if (userId) {
-      query = query.eq("user_id", userId);
+    if (!userId) {
+      return { places: [] };
     }
 
-    const { data, error } = await query;
+    const memberFolderIds = await GetMemberFolderIdsLogic1(userId);
+    const placeMap = new Map<number, Place>();
 
-    if (error) {
+    const { data: ownPlaces, error: ownError } = await supabase
+      .from("places")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (ownError) {
       return { places: [], error: "저장된 맛집을 불러오지 못했습니다." };
     }
 
-    const placeMap = new Map<number, Place>();
-
-    (data ?? []).forEach((place) => {
+    (ownPlaces ?? []).forEach((place) => {
       const normalized = {
         ...(place as Place),
         visited: Boolean((place as Place).visited),
@@ -109,7 +104,33 @@ export async function LoadPlacesLogic1(): Promise<{
       placeMap.set(normalized.id, normalized);
     });
 
-    return { places: Array.from(placeMap.values()) };
+    if (memberFolderIds.length > 0) {
+      const { data: sharedPlaces, error: sharedError } = await supabase
+        .from("places")
+        .select("*")
+        .in("folder_id", memberFolderIds)
+        .order("created_at", { ascending: false });
+
+      if (sharedError) {
+        return { places: [], error: "공동 폴더 맛집을 불러오지 못했습니다." };
+      }
+
+      (sharedPlaces ?? []).forEach((place) => {
+        const normalized = {
+          ...(place as Place),
+          visited: Boolean((place as Place).visited),
+          receipt_verified: Boolean((place as Place).receipt_verified),
+        };
+        placeMap.set(normalized.id, normalized);
+      });
+    }
+
+    const places = Array.from(placeMap.values()).sort(
+      (left, right) =>
+        new Date(right.created_at).getTime() - new Date(left.created_at).getTime(),
+    );
+
+    return { places };
   } catch {
     return { places: [], error: "Supabase 연결에 실패했습니다." };
   }

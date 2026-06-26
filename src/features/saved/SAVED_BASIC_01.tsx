@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Folder, Heart, Loader2, Plus, Tag, Users } from "lucide-react";
 import PlaceListItem from "@/components/features/PlaceListItem";
 import SharedFolderPanel from "@/components/features/SharedFolderPanel";
@@ -15,6 +15,7 @@ import type { Folder as FolderType } from "@/types/folder";
 import type { Place } from "@/types/place";
 
 export default function SAVED_BASIC_01() {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [places, setPlaces] = useState<Place[]>([]);
   const [folders, setFolders] = useState<FolderType[]>([]);
@@ -38,12 +39,28 @@ export default function SAVED_BASIC_01() {
     ]);
     setPlaces(placesResult.places);
     setFolders(foldersResult.folders);
-    setErrorMessage(placesResult.error ?? foldersResult.error ?? null);
+    setErrorMessage(placesResult.error ?? null);
+    if (!placesResult.error && foldersResult.error) {
+      setStatusMessage(foldersResult.error);
+    }
     setIsLoading(false);
   }, []);
 
   useEffect(() => {
     void LoadData();
+  }, [LoadData, pathname]);
+
+  useEffect(() => {
+    const HandleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void LoadData();
+      }
+    };
+
+    document.addEventListener("visibilitychange", HandleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", HandleVisibilityChange);
+    };
   }, [LoadData]);
 
   useEffect(() => {
@@ -315,7 +332,26 @@ export default function SAVED_BASIC_01() {
           </p>
         )}
 
-        {!isLoading && !errorMessage && filteredPlaces.length === 0 && (
+        {!isLoading && !errorMessage && places.length > 0 && filteredPlaces.length === 0 && (
+          <div className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-center">
+            <p className="text-sm text-amber-800">
+              선택한 폴더/필터에 맞는 맛집이 없어요.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedFolder("all");
+                setSelectedTag(null);
+                setVisitFilter("all");
+              }}
+              className="mt-2 text-xs font-semibold text-primary underline"
+            >
+              전체 맛집 보기
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !errorMessage && filteredPlaces.length === 0 && places.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Heart className="mb-3 h-10 w-10 text-gray-200" aria-hidden />
             <p className="text-sm text-gray-500">표시할 맛집이 없습니다.</p>

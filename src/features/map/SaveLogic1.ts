@@ -47,11 +47,18 @@ export async function SaveLogic1(place: KakaoPlace): Promise<SaveLogic1Result> {
 export async function LoadSavedIdsLogic1(): Promise<Set<string>> {
   try {
     const supabase = CreateSupabaseClient();
+    const userId = GetLocalUserId();
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("places")
       .select("link_url")
       .not("link_url", "is", null);
+
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       return new Set();

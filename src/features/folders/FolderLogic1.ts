@@ -74,7 +74,8 @@ export async function LoadFoldersLogic1(): Promise<{
         .order("created_at", { ascending: false });
 
       if (joinedError) {
-        return { folders: [], error: "공동 폴더 목록을 불러오지 못했습니다." };
+        // 공동 폴더 조회 실패 시에도 내 폴더는 표시
+        return { folders: Array.from(folderMap.values()) };
       }
 
       (joinedFolders ?? []).forEach((folder) => {
@@ -113,7 +114,6 @@ export async function CreateFolderLogic1(
       .insert({
         user_id: GetLocalUserId() || null,
         name: trimmed,
-        is_shared: false,
       })
       .select()
       .single();
