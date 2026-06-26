@@ -2,12 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Folder, Heart, Loader2, Plus, Tag, Users } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Folder, Heart, Tag, Users } from "lucide-react";
 import PlaceListItem from "@/components/features/PlaceListItem";
-import SharedFolderPanel from "@/components/features/SharedFolderPanel";
 import { LoadFoldersLogic1 } from "@/features/folders/FolderLogic1";
-import { CreateSharedFolderLogic1 } from "@/features/folders/SharedFolderLogic1";
 import { LoadPlacesLogic1 } from "@/features/home/SavePlaceLogic1";
 import { ToggleVisitLogic1 } from "@/features/places/VisitLogic1";
 import type { FolderFilter } from "@/types/folder";
@@ -16,6 +14,7 @@ import type { Place } from "@/types/place";
 
 export default function SAVED_BASIC_01() {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [places, setPlaces] = useState<Place[]>([]);
   const [folders, setFolders] = useState<FolderType[]>([]);
@@ -27,9 +26,25 @@ export default function SAVED_BASIC_01() {
     "all",
   );
   const [togglingPlaceId, setTogglingPlaceId] = useState<number | null>(null);
-  const [sharedFolderName, setSharedFolderName] = useState("");
-  const [isCreatingSharedFolder, setIsCreatingSharedFolder] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  const personalFolders = useMemo(
+    () => folders.filter((folder) => !folder.is_shared),
+    [folders],
+  );
+
+  const sharedFolderIds = useMemo(
+    () => new Set(folders.filter((folder) => folder.is_shared).map((f) => f.id)),
+    [folders],
+  );
+
+  const personalPlaces = useMemo(
+    () =>
+      places.filter(
+        (place) =>
+          place.folder_id == null || !sharedFolderIds.has(place.folder_id),
+      ),
+    [places, sharedFolderIds],
+  );
 
   const LoadData = useCallback(async () => {
     setIsLoading(true);
@@ -40,9 +55,6 @@ export default function SAVED_BASIC_01() {
     setPlaces(placesResult.places);
     setFolders(foldersResult.folders);
     setErrorMessage(placesResult.error ?? null);
-    if (!placesResult.error && foldersResult.error) {
-      setStatusMessage(foldersResult.error);
-    }
     setIsLoading(false);
   }, []);
 
@@ -65,52 +77,50 @@ export default function SAVED_BASIC_01() {
 
   useEffect(() => {
     const folderParam = searchParams.get("folder");
-    if (!folderParam) return;
+    if (!folderParam || isLoading) return;
 
     const folderId = Number(folderParam);
-    if (!Number.isNaN(folderId)) {
-      setSelectedFolder(folderId);
+    if (Number.isNaN(folderId)) return;
+
+    const folder = folders.find((item) => item.id === folderId);
+    if (folder?.is_shared) {
+      router.replace(`/shared?folder=${folderId}`);
+      return;
     }
-  }, [searchParams]);
+
+    setSelectedFolder(folderId);
+  }, [searchParams, folders, isLoading, router]);
 
   const folderNameMap = useMemo(() => {
-    return new Map(folders.map((folder) => [folder.id, folder.name]));
-  }, [folders]);
-
-  const selectedFolderInfo = useMemo(() => {
-    if (typeof selectedFolder !== "number") {
-      return null;
-    }
-
-    return folders.find((folder) => folder.id === selectedFolder) ?? null;
-  }, [folders, selectedFolder]);
+    return new Map(personalFolders.map((folder) => [folder.id, folder.name]));
+  }, [personalFolders]);
 
   const folderCounts = useMemo(() => {
     const counts = new Map<FolderFilter, number>();
-    counts.set("all", places.length);
+    counts.set("all", personalPlaces.length);
     counts.set(
       "unassigned",
-      places.filter((place) => place.folder_id == null).length,
+      personalPlaces.filter((place) => place.folder_id == null).length,
     );
-    folders.forEach((folder) => {
+    personalFolders.forEach((folder) => {
       counts.set(
         folder.id,
-        places.filter((place) => place.folder_id === folder.id).length,
+        personalPlaces.filter((place) => place.folder_id === folder.id).length,
       );
     });
     return counts;
-  }, [places, folders]);
+  }, [personalPlaces, personalFolders]);
 
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
-    places.forEach((place) => {
+    personalPlaces.forEach((place) => {
       place.tags.forEach((tag) => tagSet.add(tag));
     });
     return Array.from(tagSet);
-  }, [places]);
+  }, [personalPlaces]);
 
   const filteredPlaces = useMemo(() => {
-    return places.filter((place) => {
+    return personalPlaces.filter((place) => {
       const folderMatch =
         selectedFolder === "all" ||
         (selectedFolder === "unassigned" && place.folder_id == null) ||
@@ -122,7 +132,7 @@ export default function SAVED_BASIC_01() {
         (visitFilter === "wish" && !place.visited);
       return folderMatch && tagMatch && visitMatch;
     });
-  }, [places, selectedFolder, selectedTag, visitFilter]);
+  }, [personalPlaces, selectedFolder, selectedTag, visitFilter]);
 
   const HandleToggleVisit = async (place: Place) => {
     setTogglingPlaceId(place.id);
@@ -139,25 +149,6 @@ export default function SAVED_BASIC_01() {
         item.id === place.id ? { ...item, visited: result.place!.visited } : item,
       ),
     );
-  };
-
-  const HandleCreateSharedFolder = async () => {
-    setIsCreatingSharedFolder(true);
-    setStatusMessage(null);
-    setErrorMessage(null);
-
-    const result = await CreateSharedFolderLogic1(sharedFolderName);
-    setIsCreatingSharedFolder(false);
-
-    if (result.error || !result.folder) {
-      setErrorMessage(result.error ?? "공동 폴더 생성에 실패했습니다.");
-      return;
-    }
-
-    setFolders((prev) => [result.folder!, ...prev]);
-    setSelectedFolder(result.folder.id);
-    setSharedFolderName("");
-    setStatusMessage(`"${result.folder.name}" 공동 폴더가 만들어졌어요.`);
   };
 
   return (
@@ -178,47 +169,6 @@ export default function SAVED_BASIC_01() {
           이번 주 회식 어디로? 투표방 만들기
         </Link>
 
-        <section className="mb-4 rounded-2xl border border-gray-100 bg-white p-4">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-            <Users className="h-4 w-4 text-violet-600" aria-hidden />
-            공동 폴더 만들기
-          </h2>
-          <p className="mt-2 text-xs text-gray-500">
-            친구와 함께 편집할 맛집 리스트를 만들고 초대 링크를 공유하세요.
-          </p>
-          <div className="mt-3 flex gap-2">
-            <input
-              value={sharedFolderName}
-              onChange={(event) => setSharedFolderName(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  void HandleCreateSharedFolder();
-                }
-              }}
-              placeholder="예: 커플 맛집, 팀 회식 후보"
-              className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none focus:border-primary focus:bg-white"
-            />
-            <button
-              type="button"
-              disabled={isCreatingSharedFolder || !sharedFolderName.trim()}
-              onClick={() => void HandleCreateSharedFolder()}
-              className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-violet-600 px-3 py-2.5 text-xs font-semibold text-white disabled:opacity-50"
-            >
-              {isCreatingSharedFolder ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-              ) : (
-                <Plus className="h-3.5 w-3.5" aria-hidden />
-              )}
-              만들기
-            </button>
-          </div>
-        </section>
-
-        {selectedFolderInfo?.is_shared && (
-          <SharedFolderPanel folder={selectedFolderInfo} />
-        )}
-
         <div className="mb-4">
           <p className="mb-2 flex items-center gap-1 text-xs font-medium text-gray-500">
             <Folder className="h-3.5 w-3.5" aria-hidden />
@@ -228,9 +178,9 @@ export default function SAVED_BASIC_01() {
             {[
               { key: "all" as const, label: "전체" },
               { key: "unassigned" as const, label: "미분류" },
-              ...folders.map((folder) => ({
+              ...personalFolders.map((folder) => ({
                 key: folder.id as FolderFilter,
-                label: folder.is_shared ? `👥 ${folder.name}` : folder.name,
+                label: folder.name,
               })),
             ].map((item) => {
               const count = folderCounts.get(item.key) ?? 0;
@@ -241,14 +191,14 @@ export default function SAVED_BASIC_01() {
                   key={String(item.key)}
                   type="button"
                   onClick={() => setSelectedFolder(item.key)}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     isActive
                       ? "bg-gray-900 text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
                 >
                   {item.label}
-                  <span className="ml-1 opacity-70">{count}</span>
+                  <span className="opacity-70">{count}</span>
                 </button>
               );
             })}
@@ -314,12 +264,6 @@ export default function SAVED_BASIC_01() {
           </div>
         )}
 
-        {statusMessage && (
-          <p className="mb-4 rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-700">
-            {statusMessage}
-          </p>
-        )}
-
         {isLoading && (
           <p className="py-10 text-center text-sm text-gray-400">
             불러오는 중...
@@ -332,7 +276,7 @@ export default function SAVED_BASIC_01() {
           </p>
         )}
 
-        {!isLoading && !errorMessage && places.length > 0 && filteredPlaces.length === 0 && (
+        {!isLoading && !errorMessage && personalPlaces.length > 0 && filteredPlaces.length === 0 && (
           <div className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-center">
             <p className="text-sm text-amber-800">
               선택한 폴더/필터에 맞는 맛집이 없어요.
@@ -351,7 +295,7 @@ export default function SAVED_BASIC_01() {
           </div>
         )}
 
-        {!isLoading && !errorMessage && filteredPlaces.length === 0 && places.length === 0 && (
+        {!isLoading && !errorMessage && filteredPlaces.length === 0 && personalPlaces.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Heart className="mb-3 h-10 w-10 text-gray-200" aria-hidden />
             <p className="text-sm text-gray-500">표시할 맛집이 없습니다.</p>

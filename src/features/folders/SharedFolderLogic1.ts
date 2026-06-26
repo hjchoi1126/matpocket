@@ -247,3 +247,83 @@ export async function LoadSharedFolderByTokenLogic1(
     return { error: "Supabase 연결에 실패했습니다." };
   }
 }
+
+async function GetFolderMemberRoleLogic1(
+  folderId: number,
+  userId?: string,
+): Promise<Folder["role"] | null> {
+  const resolvedUserId = userId ?? GetLocalUserId();
+
+  if (!resolvedUserId) {
+    return null;
+  }
+
+  try {
+    const supabase = CreateSupabaseClient();
+    const { data } = await supabase
+      .from("folder_members")
+      .select("role")
+      .eq("folder_id", folderId)
+      .eq("user_id", resolvedUserId)
+      .maybeSingle();
+
+    return (data?.role as Folder["role"] | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function DeleteSharedFolderLogic1(
+  folderId: number,
+): Promise<{ error?: string }> {
+  try {
+    const supabase = CreateSupabaseClient();
+    const role = await GetFolderMemberRoleLogic1(folderId);
+
+    if (role !== "owner") {
+      return { error: "방장만 공동 폴더를 삭제할 수 있습니다." };
+    }
+
+    const { error } = await supabase.from("folders").delete().eq("id", folderId);
+
+    if (error) {
+      return { error: "공동 폴더 삭제에 실패했습니다." };
+    }
+
+    return {};
+  } catch {
+    return { error: "Supabase 연결에 실패했습니다." };
+  }
+}
+
+export async function LeaveSharedFolderLogic1(
+  folderId: number,
+): Promise<{ error?: string }> {
+  try {
+    const supabase = CreateSupabaseClient();
+    const userId = GetLocalUserId();
+    const role = await GetFolderMemberRoleLogic1(folderId, userId);
+
+    if (!role) {
+      return { error: "참여 중인 폴더가 아닙니다." };
+    }
+
+    if (role === "owner") {
+      return { error: "방장은 나가기 대신 폴더 삭제를 사용해 주세요." };
+    }
+
+    const { error } = await supabase
+      .from("folder_members")
+      .delete()
+      .eq("folder_id", folderId)
+      .eq("user_id", userId);
+
+    if (error) {
+      return { error: "공동 폴더 나가기에 실패했습니다." };
+    }
+
+    return {};
+  } catch {
+    return { error: "Supabase 연결에 실패했습니다." };
+  }
+}

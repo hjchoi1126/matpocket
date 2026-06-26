@@ -38,16 +38,16 @@ export function useSharedFolderJoin01F(inviteToken: string) {
     }
 
     if (result.alreadyJoined) {
-      setStatusMessage("이미 참여 중인 공동 폴더예요. 저장소로 이동합니다.");
+      setStatusMessage("이미 참여 중인 공동 폴더예요. 공유저장소로 이동합니다.");
     } else {
-      setStatusMessage("공동 폴더에 참여했어요! 저장소로 이동합니다.");
+      setStatusMessage("공동 폴더에 참여했어요! 공유저장소로 이동합니다.");
     }
 
     setFolder(result.folder ?? null);
 
     window.setTimeout(() => {
       router.push(
-        result.folder ? `/saved?folder=${result.folder.id}` : "/saved",
+        result.folder ? `/shared?folder=${result.folder.id}` : "/shared",
       );
     }, 900);
   }, [inviteToken, router]);

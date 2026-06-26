@@ -1,21 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Copy, Loader2, Users } from "lucide-react";
+import { Copy, Loader2, LogOut, Trash2, Users } from "lucide-react";
 import {
   BuildFolderInviteUrlLogic1,
+  DeleteSharedFolderLogic1,
+  LeaveSharedFolderLogic1,
   LoadFolderMembersLogic1,
 } from "@/features/folders/SharedFolderLogic1";
 import type { Folder, FolderMember } from "@/types/folder";
 
 type SharedFolderPanelProps = {
   folder: Folder;
+  onChanged: () => void;
 };
 
-export default function SharedFolderPanel({ folder }: SharedFolderPanelProps) {
+export default function SharedFolderPanel({
+  folder,
+  onChanged,
+}: SharedFolderPanelProps) {
   const [members, setMembers] = useState<FolderMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const isOwner = folder.role === "owner";
 
   const inviteUrl = folder.invite_token
     ? BuildFolderInviteUrlLogic1(folder.invite_token)
@@ -39,6 +51,52 @@ export default function SharedFolderPanel({ folder }: SharedFolderPanelProps) {
     }
   };
 
+  const HandleDeleteFolder = async () => {
+    const confirmed = window.confirm(
+      `"${folder.name}" 공동 폴더를 삭제할까요?\n폴더 안 맛집은 삭제되지 않고 미분류로 남습니다.`,
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    setActionError(null);
+    setActionMessage(null);
+
+    const result = await DeleteSharedFolderLogic1(folder.id);
+    setIsDeleting(false);
+
+    if (result.error) {
+      setActionError(result.error);
+      return;
+    }
+
+    setActionMessage("공동 폴더를 삭제했습니다.");
+    onChanged();
+  };
+
+  const HandleLeaveFolder = async () => {
+    const confirmed = window.confirm(
+      `"${folder.name}" 공동 폴더에서 나갈까요?`,
+    );
+
+    if (!confirmed) return;
+
+    setIsLeaving(true);
+    setActionError(null);
+    setActionMessage(null);
+
+    const result = await LeaveSharedFolderLogic1(folder.id);
+    setIsLeaving(false);
+
+    if (result.error) {
+      setActionError(result.error);
+      return;
+    }
+
+    setActionMessage("공동 폴더에서 나갔습니다.");
+    onChanged();
+  };
+
   return (
     <section className="mb-4 rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
       <div className="flex items-center gap-2">
@@ -50,7 +108,7 @@ export default function SharedFolderPanel({ folder }: SharedFolderPanelProps) {
         친구에게 보내 초대하세요.
       </p>
 
-      {inviteUrl && (
+      {inviteUrl && isOwner && (
         <div className="mt-3 rounded-xl bg-white p-3">
           <p className="text-[11px] font-medium text-gray-500">초대 링크</p>
           <p className="mt-1 break-all text-xs text-gray-700">{inviteUrl}</p>
@@ -90,8 +148,46 @@ export default function SharedFolderPanel({ folder }: SharedFolderPanelProps) {
         )}
       </div>
 
+      <div className="mt-4 flex gap-2">
+        {isOwner ? (
+          <button
+            type="button"
+            disabled={isDeleting}
+            onClick={() => void HandleDeleteFolder()}
+            className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-2.5 text-xs font-semibold text-red-600 disabled:opacity-50"
+          >
+            {isDeleting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+            ) : (
+              <Trash2 className="h-3.5 w-3.5" aria-hidden />
+            )}
+            폴더 삭제
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={isLeaving}
+            onClick={() => void HandleLeaveFolder()}
+            className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-xs font-semibold text-gray-700 disabled:opacity-50"
+          >
+            {isLeaving ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+            ) : (
+              <LogOut className="h-3.5 w-3.5" aria-hidden />
+            )}
+            폴더 나가기
+          </button>
+        )}
+      </div>
+
       {copyMessage && (
         <p className="mt-3 text-xs font-medium text-violet-700">{copyMessage}</p>
+      )}
+      {actionMessage && (
+        <p className="mt-3 text-xs font-medium text-violet-700">{actionMessage}</p>
+      )}
+      {actionError && (
+        <p className="mt-3 text-xs font-medium text-red-600">{actionError}</p>
       )}
     </section>
   );

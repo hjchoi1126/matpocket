@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gamepad2, Heart, MapPin, Settings, UtensilsCrossed } from "lucide-react";
+import { Gamepad2, Heart, MapPin, Settings, Users, UtensilsCrossed } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/", label: "홈", icon: UtensilsCrossed },
   { href: "/map", label: "지도", icon: MapPin },
-  { href: "/play", label: "플레이 🎮", icon: Gamepad2 },
   { href: "/saved", label: "저장소", icon: Heart },
+  { href: "/shared", label: "공유저장소", icon: Users },
+  { href: "/play", label: "플레이", icon: Gamepad2 },
   { href: "/settings", label: "설정", icon: Settings },
 ] as const;
 
@@ -24,13 +25,15 @@ export default function BottomNav() {
               ? pathname === "/"
               : href === "/play"
                 ? pathname === "/play" || pathname.startsWith("/play/")
-                : pathname.startsWith(href);
+                : href === "/shared"
+                  ? pathname === "/shared"
+                  : pathname.startsWith(href);
 
           return (
             <Link
               key={href}
               href={href}
-              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 text-[10px] transition-colors sm:text-xs ${
+              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 text-[9px] transition-colors sm:text-[10px] ${
                 isActive
                   ? "text-primary"
                   : "text-gray-400 hover:text-gray-600"

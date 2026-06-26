@@ -55,10 +55,10 @@ export default function SHARED_FOLDER_JOIN_01({
               {errorMessage ?? "초대 링크를 확인할 수 없습니다."}
             </p>
             <Link
-              href="/saved"
+              href="/shared"
               className="mt-6 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700"
             >
-              저장소로 돌아가기
+              공유저장소로 돌아가기
             </Link>
           </>
         )}
