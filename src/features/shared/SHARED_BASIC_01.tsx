@@ -1,187 +1,46 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Folder, Loader2, Plus, Tag, Users } from "lucide-react";
+import { Folder, Loader2, Plus, Search, Tag, Users, X } from "lucide-react";
 import PlaceListItem from "@/components/features/PlaceListItem";
 import SharedFolderPanel from "@/components/features/SharedFolderPanel";
-import { LoadFoldersLogic1 } from "@/features/folders/FolderLogic1";
-import { CreateSharedFolderLogic1 } from "@/features/folders/SharedFolderLogic1";
-import { LoadPlacesLogic1 } from "@/features/home/SavePlaceLogic1";
-import { ToggleVisitLogic1 } from "@/features/places/VisitLogic1";
+import { useSharedBasic01F } from "@/features/shared/SHARED_BASIC_01F";
 import type { FolderFilter } from "@/types/folder";
-import type { Folder as FolderType } from "@/types/folder";
-import type { Place } from "@/types/place";
 
 export default function SHARED_BASIC_01() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [places, setPlaces] = useState<Place[]>([]);
-  const [folders, setFolders] = useState<FolderType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [selectedFolder, setSelectedFolder] = useState<FolderFilter>("all");
-  const [visitFilter, setVisitFilter] = useState<"all" | "wish" | "visited">(
-    "all",
-  );
-  const [togglingPlaceId, setTogglingPlaceId] = useState<number | null>(null);
-  const [sharedFolderName, setSharedFolderName] = useState("");
-  const [isCreatingSharedFolder, setIsCreatingSharedFolder] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const {
+    sharedFolders,
+    sharedPlaces,
+    isLoading,
+    errorMessage,
+    searchQuery,
+    setSearchQuery,
+    selectedTag,
+    setSelectedTag,
+    selectedFolder,
+    setSelectedFolder,
+    visitFilter,
+    setVisitFilter,
+    togglingPlaceId,
+    sharedFolderName,
+    setSharedFolderName,
+    isCreatingSharedFolder,
+    statusMessage,
+    selectedFolderInfo,
+    folderNameMap,
+    folderCounts,
+    allTags,
+    filteredPlaces,
+    HandleSharedFolderChanged,
+    HandleToggleVisit,
+    HandleCreateSharedFolder,
+    HandleResetFilters,
+  } = useSharedBasic01F();
 
-  const sharedFolders = useMemo(
-    () => folders.filter((folder) => folder.is_shared),
-    [folders],
-  );
-
-  const sharedFolderIds = useMemo(
-    () => new Set(sharedFolders.map((folder) => folder.id)),
-    [sharedFolders],
-  );
-
-  const sharedPlaces = useMemo(
-    () =>
-      places.filter(
-        (place) =>
-          place.folder_id != null && sharedFolderIds.has(place.folder_id),
-      ),
-    [places, sharedFolderIds],
-  );
-
-  const LoadData = useCallback(async () => {
-    setIsLoading(true);
-    const [placesResult, foldersResult] = await Promise.all([
-      LoadPlacesLogic1(),
-      LoadFoldersLogic1(),
-    ]);
-    setPlaces(placesResult.places);
-    setFolders(foldersResult.folders);
-    setErrorMessage(placesResult.error ?? null);
-    if (!placesResult.error && foldersResult.error) {
-      setStatusMessage(foldersResult.error);
-    }
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    void LoadData();
-  }, [LoadData, pathname]);
-
-  useEffect(() => {
-    const HandleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        void LoadData();
-      }
-    };
-
-    document.addEventListener("visibilitychange", HandleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", HandleVisibilityChange);
-    };
-  }, [LoadData]);
-
-  useEffect(() => {
-    const folderParam = searchParams.get("folder");
-    if (!folderParam || isLoading) return;
-
-    const folderId = Number(folderParam);
-    if (Number.isNaN(folderId)) return;
-
-    const folder = sharedFolders.find((item) => item.id === folderId);
-    if (folder) {
-      setSelectedFolder(folderId);
-    }
-  }, [searchParams, sharedFolders, isLoading]);
-
-  const folderNameMap = useMemo(() => {
-    return new Map(sharedFolders.map((folder) => [folder.id, folder.name]));
-  }, [sharedFolders]);
-
-  const selectedFolderInfo = useMemo(() => {
-    if (typeof selectedFolder !== "number") {
-      return null;
-    }
-
-    return sharedFolders.find((folder) => folder.id === selectedFolder) ?? null;
-  }, [sharedFolders, selectedFolder]);
-
-  const folderCounts = useMemo(() => {
-    const counts = new Map<FolderFilter, number>();
-    counts.set("all", sharedPlaces.length);
-    sharedFolders.forEach((folder) => {
-      counts.set(
-        folder.id,
-        sharedPlaces.filter((place) => place.folder_id === folder.id).length,
-      );
-    });
-    return counts;
-  }, [sharedPlaces, sharedFolders]);
-
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    sharedPlaces.forEach((place) => {
-      place.tags.forEach((tag) => tagSet.add(tag));
-    });
-    return Array.from(tagSet);
-  }, [sharedPlaces]);
-
-  const filteredPlaces = useMemo(() => {
-    return sharedPlaces.filter((place) => {
-      const folderMatch =
-        selectedFolder === "all" || place.folder_id === selectedFolder;
-      const tagMatch = !selectedTag || place.tags.includes(selectedTag);
-      const visitMatch =
-        visitFilter === "all" ||
-        (visitFilter === "visited" && place.visited) ||
-        (visitFilter === "wish" && !place.visited);
-      return folderMatch && tagMatch && visitMatch;
-    });
-  }, [sharedPlaces, selectedFolder, selectedTag, visitFilter]);
-
-  const HandleSharedFolderChanged = useCallback(() => {
-    setSelectedFolder("all");
-    setStatusMessage(null);
-    void LoadData();
-  }, [LoadData]);
-
-  const HandleToggleVisit = async (place: Place) => {
-    setTogglingPlaceId(place.id);
-    const result = await ToggleVisitLogic1(place.id, !Boolean(place.visited));
-    setTogglingPlaceId(null);
-
-    if (result.error || !result.place) {
-      setErrorMessage(result.error ?? "방문 상태 변경에 실패했습니다.");
-      return;
-    }
-
-    setPlaces((prev) =>
-      prev.map((item) =>
-        item.id === place.id ? { ...item, visited: result.place!.visited } : item,
-      ),
-    );
-  };
-
-  const HandleCreateSharedFolder = async () => {
-    setIsCreatingSharedFolder(true);
-    setStatusMessage(null);
-    setErrorMessage(null);
-
-    const result = await CreateSharedFolderLogic1(sharedFolderName);
-    setIsCreatingSharedFolder(false);
-
-    if (result.error || !result.folder) {
-      setErrorMessage(result.error ?? "공동 폴더 생성에 실패했습니다.");
-      return;
-    }
-
-    setFolders((prev) => [result.folder!, ...prev]);
-    setSelectedFolder(result.folder.id);
-    setSharedFolderName("");
-    setStatusMessage(`"${result.folder.name}" 공동 폴더가 만들어졌어요.`);
-    router.replace(`/shared?folder=${result.folder.id}`);
-  };
+  const hasActiveFilters =
+    selectedFolder !== "all" ||
+    selectedTag !== null ||
+    visitFilter !== "all" ||
+    searchQuery.trim().length > 0;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -189,6 +48,30 @@ export default function SHARED_BASIC_01() {
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-violet-600" aria-hidden />
           <h1 className="text-lg font-bold text-gray-900">공유저장소</h1>
+        </div>
+
+        <div className="relative mt-3">
+          <Search
+            className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+            aria-hidden
+          />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="맛집 이름, 주소, 태그, 메모 검색"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pr-9 pl-10 text-sm outline-none focus:border-violet-400 focus:bg-white"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              aria-label="검색어 지우기"
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+          )}
         </div>
       </header>
 
@@ -360,19 +243,19 @@ export default function SHARED_BASIC_01() {
           filteredPlaces.length === 0 && (
             <div className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-center">
               <p className="text-sm text-amber-800">
-                선택한 폴더/필터에 맞는 맛집이 없어요.
+                {searchQuery.trim()
+                  ? `"${searchQuery.trim()}"에 맞는 맛집이 없어요.`
+                  : "선택한 폴더/필터에 맞는 맛집이 없어요."}
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedFolder("all");
-                  setSelectedTag(null);
-                  setVisitFilter("all");
-                }}
-                className="mt-2 text-xs font-semibold text-violet-600 underline"
-              >
-                전체 맛집 보기
-              </button>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={HandleResetFilters}
+                  className="mt-2 text-xs font-semibold text-violet-600 underline"
+                >
+                  필터 초기화
+                </button>
+              )}
             </div>
           )}
 
