@@ -4,6 +4,7 @@ import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, MapPin, Navigation } from "lucide-react";
 import PlaceListItem from "@/components/features/PlaceListItem";
+import PlaceRegisterSheet from "@/components/features/PlaceRegisterSheet";
 import MAP_SEARCH_01 from "@/features/map/MAP_SEARCH_01";
 import { useMapBasic01F } from "@/features/map/MAP_BASIC_01F";
 import type { NearbyPlace, Place } from "@/types/place";
@@ -26,6 +27,7 @@ function MapBasic01Content() {
     setActiveTab,
     HandleNearbySearch,
     HandleToggleVisit,
+    ReloadSavedPlaces,
   } = useMapBasic01F();
 
   useEffect(() => {
@@ -37,7 +39,10 @@ function MapBasic01Content() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="shrink-0 border-b border-gray-100 bg-white px-4 py-4">
-        <h1 className="text-lg font-bold text-gray-900">지도</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-lg font-bold text-gray-900">지도</h1>
+          <PlaceRegisterSheet onSaved={() => void ReloadSavedPlaces()} />
+        </div>
         <div className="mt-3 flex rounded-xl bg-gray-100 p-1">
           <button
             type="button"

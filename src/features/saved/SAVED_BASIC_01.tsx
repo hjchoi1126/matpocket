@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Folder, Heart, Search, Tag, Users, X } from "lucide-react";
+import { Folder, Heart, MapPin, Search, Tag, Users, X } from "lucide-react";
 import PlaceListItem from "@/components/features/PlaceListItem";
+import PlaceRegisterSheet from "@/components/features/PlaceRegisterSheet";
 import { useSavedBasic01F } from "@/features/saved/SAVED_BASIC_01F";
 import type { FolderFilter } from "@/types/folder";
 
@@ -21,12 +22,15 @@ export default function SAVED_BASIC_01() {
     visitFilter,
     setVisitFilter,
     togglingPlaceId,
+    deletingPlaceId,
     folderNameMap,
     folderCounts,
     allTags,
     filteredPlaces,
     HandleToggleVisit,
+    HandleDeletePlace,
     HandleResetFilters,
+    ReloadData,
   } = useSavedBasic01F();
 
   const hasActiveFilters =
@@ -38,9 +42,12 @@ export default function SAVED_BASIC_01() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="shrink-0 border-b border-gray-100 bg-white px-4 py-4">
-        <div className="flex items-center gap-2">
-          <Heart className="h-5 w-5 text-primary" aria-hidden />
-          <h1 className="text-lg font-bold text-gray-900">저장소</h1>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Heart className="h-5 w-5 text-primary" aria-hidden />
+            <h1 className="text-lg font-bold text-gray-900">저장소</h1>
+          </div>
+          <PlaceRegisterSheet onSaved={() => void ReloadData()} />
         </div>
 
         <div className="relative mt-3">
@@ -212,7 +219,19 @@ export default function SAVED_BASIC_01() {
           personalPlaces.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <Heart className="mb-3 h-10 w-10 text-gray-200" aria-hidden />
-              <p className="text-sm text-gray-500">표시할 맛집이 없습니다.</p>
+              <p className="text-sm font-medium text-gray-700">
+                아직 저장한 맛집이 없어요
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                지도에서 맛집을 검색해 저장해 보세요.
+              </p>
+              <Link
+                href="/map"
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm"
+              >
+                <MapPin className="h-4 w-4" aria-hidden />
+                맛집 검색하러 가기
+              </Link>
             </div>
           )}
 
@@ -227,7 +246,9 @@ export default function SAVED_BASIC_01() {
                     : undefined
                 }
                 isToggling={togglingPlaceId === place.id}
+                isDeleting={deletingPlaceId === place.id}
                 onToggleVisit={(item) => void HandleToggleVisit(item)}
+                onDelete={(item) => void HandleDeletePlace(item)}
               />
             </li>
           ))}

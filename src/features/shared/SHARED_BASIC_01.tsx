@@ -1,6 +1,7 @@
 "use client";
 
-import { Folder, Loader2, Plus, Search, Tag, Users, X } from "lucide-react";
+import Link from "next/link";
+import { Folder, Loader2, MapPin, Plus, Search, Tag, Users, X } from "lucide-react";
 import PlaceListItem from "@/components/features/PlaceListItem";
 import SharedFolderPanel from "@/components/features/SharedFolderPanel";
 import { useSharedBasic01F } from "@/features/shared/SHARED_BASIC_01F";
@@ -21,6 +22,7 @@ export default function SHARED_BASIC_01() {
     visitFilter,
     setVisitFilter,
     togglingPlaceId,
+    deletingPlaceId,
     sharedFolderName,
     setSharedFolderName,
     isCreatingSharedFolder,
@@ -32,6 +34,7 @@ export default function SHARED_BASIC_01() {
     filteredPlaces,
     HandleSharedFolderChanged,
     HandleToggleVisit,
+    HandleDeletePlace,
     HandleCreateSharedFolder,
     HandleResetFilters,
   } = useSharedBasic01F();
@@ -261,16 +264,35 @@ export default function SHARED_BASIC_01() {
 
         {!isLoading &&
           !errorMessage &&
-          sharedFolders.length === 0 &&
           sharedPlaces.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <Users className="mb-3 h-10 w-10 text-violet-200" aria-hidden />
-              <p className="text-sm font-medium text-gray-700">
-                아직 공동 폴더가 없어요
-              </p>
-              <p className="mt-1 text-xs text-gray-500">
-                위에서 폴더를 만들거나 친구의 초대 링크로 참여해 보세요.
-              </p>
+              {sharedFolders.length === 0 ? (
+                <>
+                  <p className="text-sm font-medium text-gray-700">
+                    아직 공동 폴더가 없어요
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    위에서 폴더를 만들거나 친구의 초대 링크로 참여해 보세요.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-gray-700">
+                    공유 폴더에 맛집이 없어요
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    지도에서 맛집을 검색해 공동 폴더에 저장해 보세요.
+                  </p>
+                </>
+              )}
+              <Link
+                href="/map"
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm"
+              >
+                <MapPin className="h-4 w-4" aria-hidden />
+                맛집 검색하러 가기
+              </Link>
             </div>
           )}
 
@@ -285,7 +307,9 @@ export default function SHARED_BASIC_01() {
                     : undefined
                 }
                 isToggling={togglingPlaceId === place.id}
+                isDeleting={deletingPlaceId === place.id}
                 onToggleVisit={(item) => void HandleToggleVisit(item)}
+                onDelete={(item) => void HandleDeletePlace(item)}
               />
             </li>
           ))}

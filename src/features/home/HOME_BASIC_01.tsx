@@ -1,30 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { ChefHat, Dices, Loader2, MapPin, Pill, Plus } from "lucide-react";
 import RouletteModal from "@/components/features/RouletteModal";
 import CurationModal from "@/components/features/CurationModal";
 import GeoNotifierHeaderButton from "@/components/features/GeoNotifierHeaderButton";
-import HOME_REGISTER_01 from "@/features/home/HOME_REGISTER_01";
 import { useHomeBasic01F } from "@/features/home/HOME_BASIC_01F";
 import { useHomeMap01F } from "@/features/home/HOME_MAP_01F";
 
 export default function HOME_BASIC_01() {
+  const router = useRouter();
   const {
-    form,
-    customTag,
-    setCustomTag,
     savedPlaces,
-    isScraping,
-    isSaving,
     isLoadingPlaces,
-    errorMessage,
-    statusMessage,
-    presetTags,
-    UpdateField,
-    ToggleTag,
-    AddCustomTag,
-    HandleScrapeLink,
-    HandleSavePlace,
     isLoadingWeather,
     recommendationChipText,
     nickname,
@@ -32,13 +20,6 @@ export default function HOME_BASIC_01() {
     setIsRouletteOpen,
     isCurationOpen,
     setIsCurationOpen,
-    isRegisterSheetOpen,
-    setIsRegisterSheetOpen,
-    lastSavedPlace,
-    HandleReceiptVerified,
-    folders,
-    isLoadingFolders,
-    HandleFolderCreated,
   } = useHomeBasic01F();
 
   const { mapContainerRef, isMapReady, isLoadingLocation, mapError } =
@@ -159,38 +140,14 @@ export default function HOME_BASIC_01() {
         onClose={() => setIsCurationOpen(false)}
       />
 
-      {/* Register FAB */}
       <button
         type="button"
-        onClick={() => setIsRegisterSheetOpen(true)}
+        onClick={() => router.push("/map?tab=search")}
         className="fixed bottom-24 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-xl transition-transform active:scale-110"
-        aria-label="맛집 등록"
+        aria-label="맛집 검색"
       >
         <Plus className="h-7 w-7" strokeWidth={2.5} aria-hidden />
       </button>
-
-      <HOME_REGISTER_01
-        isOpen={isRegisterSheetOpen}
-        onClose={() => setIsRegisterSheetOpen(false)}
-        form={form}
-        customTag={customTag}
-        setCustomTag={setCustomTag}
-        isScraping={isScraping}
-        isSaving={isSaving}
-        errorMessage={errorMessage}
-        statusMessage={statusMessage}
-        presetTags={presetTags}
-        folders={folders}
-        isLoadingFolders={isLoadingFolders}
-        lastSavedPlace={lastSavedPlace}
-        UpdateField={UpdateField}
-        ToggleTag={ToggleTag}
-        AddCustomTag={AddCustomTag}
-        HandleScrapeLink={() => void HandleScrapeLink()}
-        HandleSavePlace={() => void HandleSavePlace()}
-        HandleFolderCreated={HandleFolderCreated}
-        HandleReceiptVerified={HandleReceiptVerified}
-      />
       </div>
     </div>
   );

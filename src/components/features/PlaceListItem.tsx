@@ -1,23 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { BadgeCheck, ChevronRight, Folder, Loader2 } from "lucide-react";
+import { BadgeCheck, ChevronRight, Folder, Loader2, Trash2 } from "lucide-react";
 import type { Place } from "@/types/place";
 
 type PlaceListItemProps = {
   place: Place;
   folderName?: string;
   isToggling?: boolean;
+  isDeleting?: boolean;
   trailing?: React.ReactNode;
   onToggleVisit: (place: Place) => void;
+  onDelete?: (place: Place) => void;
 };
 
 export default function PlaceListItem({
   place,
   folderName,
   isToggling = false,
+  isDeleting = false,
   trailing,
   onToggleVisit,
+  onDelete,
 }: PlaceListItemProps) {
   const visited = Boolean(place.visited);
   const receiptVerified = Boolean(place.receipt_verified);
@@ -83,13 +87,30 @@ export default function PlaceListItem({
             <ChevronRight className="h-3.5 w-3.5" aria-hidden />
           </Link>
         </div>
-        {trailing}
+        <div className="flex shrink-0 items-start gap-1">
+          {onDelete && (
+            <button
+              type="button"
+              disabled={isDeleting || isToggling}
+              onClick={() => onDelete(place)}
+              className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+              aria-label={`${place.place_name} 삭제`}
+            >
+              {isDeleting ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Trash2 className="h-4 w-4" aria-hidden />
+              )}
+            </button>
+          )}
+          {trailing}
+        </div>
       </div>
 
-      <div className="mt-3 flex justify-end">
+      <div className="mt-3 flex justify-end gap-2">
         <button
           type="button"
-          disabled={isToggling}
+          disabled={isToggling || isDeleting}
           onClick={() => onToggleVisit(place)}
           className={`inline-flex items-center gap-1 rounded-full px-4 py-2 text-xs font-semibold transition-colors disabled:opacity-50 ${
             visited

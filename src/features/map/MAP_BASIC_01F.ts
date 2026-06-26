@@ -286,5 +286,6 @@ export function useMapBasic01F() {
     setActiveTab,
     HandleNearbySearch,
     HandleToggleVisit,
+    ReloadSavedPlaces: LoadSavedPlaces,
   };
 }

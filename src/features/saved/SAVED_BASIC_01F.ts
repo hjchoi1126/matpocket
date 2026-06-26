@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { LoadFoldersLogic1 } from "@/features/folders/FolderLogic1";
 import { LoadPlacesLogic1 } from "@/features/home/SavePlaceLogic1";
 import { ToggleVisitLogic1 } from "@/features/places/VisitLogic1";
+import { DeletePlaceLogic1 } from "@/features/places/DeletePlaceLogic1";
 import { SearchSavedPlacesLogic1 } from "@/features/saved/SavedSearchLogic1";
 import type { FolderFilter } from "@/types/folder";
 import type { Folder as FolderType } from "@/types/folder";
@@ -25,6 +26,7 @@ export function useSavedBasic01F() {
     "all",
   );
   const [togglingPlaceId, setTogglingPlaceId] = useState<number | null>(null);
+  const [deletingPlaceId, setDeletingPlaceId] = useState<number | null>(null);
 
   const personalFolders = useMemo(
     () => folders.filter((folder) => !folder.is_shared),
@@ -164,6 +166,29 @@ export function useSavedBasic01F() {
     );
   };
 
+  const HandleDeletePlace = async (place: Place) => {
+    const confirmed = window.confirm(
+      `"${place.place_name}"을(를) 저장소에서 삭제할까요?\n타임라인 메모와 사진도 함께 삭제됩니다.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingPlaceId(place.id);
+    setErrorMessage(null);
+
+    const result = await DeletePlaceLogic1(place.id);
+    setDeletingPlaceId(null);
+
+    if (result.error) {
+      setErrorMessage(result.error);
+      return;
+    }
+
+    setPlaces((prev) => prev.filter((item) => item.id !== place.id));
+  };
+
   const HandleResetFilters = () => {
     setSelectedFolder("all");
     setSelectedTag(null);
@@ -185,11 +210,14 @@ export function useSavedBasic01F() {
     visitFilter,
     setVisitFilter,
     togglingPlaceId,
+    deletingPlaceId,
     folderNameMap,
     folderCounts,
     allTags,
     filteredPlaces,
     HandleToggleVisit,
+    HandleDeletePlace,
     HandleResetFilters,
+    ReloadData: LoadData,
   };
 }
