@@ -1,155 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Folder, Heart, Tag, Users } from "lucide-react";
+import { Folder, Heart, Search, Tag, Users, X } from "lucide-react";
 import PlaceListItem from "@/components/features/PlaceListItem";
-import { LoadFoldersLogic1 } from "@/features/folders/FolderLogic1";
-import { LoadPlacesLogic1 } from "@/features/home/SavePlaceLogic1";
-import { ToggleVisitLogic1 } from "@/features/places/VisitLogic1";
+import { useSavedBasic01F } from "@/features/saved/SAVED_BASIC_01F";
 import type { FolderFilter } from "@/types/folder";
-import type { Folder as FolderType } from "@/types/folder";
-import type { Place } from "@/types/place";
 
 export default function SAVED_BASIC_01() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [places, setPlaces] = useState<Place[]>([]);
-  const [folders, setFolders] = useState<FolderType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [selectedFolder, setSelectedFolder] = useState<FolderFilter>("all");
-  const [visitFilter, setVisitFilter] = useState<"all" | "wish" | "visited">(
-    "all",
-  );
-  const [togglingPlaceId, setTogglingPlaceId] = useState<number | null>(null);
+  const {
+    personalFolders,
+    personalPlaces,
+    isLoading,
+    errorMessage,
+    searchQuery,
+    setSearchQuery,
+    selectedTag,
+    setSelectedTag,
+    selectedFolder,
+    setSelectedFolder,
+    visitFilter,
+    setVisitFilter,
+    togglingPlaceId,
+    folderNameMap,
+    folderCounts,
+    allTags,
+    filteredPlaces,
+    HandleToggleVisit,
+    HandleResetFilters,
+  } = useSavedBasic01F();
 
-  const personalFolders = useMemo(
-    () => folders.filter((folder) => !folder.is_shared),
-    [folders],
-  );
-
-  const sharedFolderIds = useMemo(
-    () => new Set(folders.filter((folder) => folder.is_shared).map((f) => f.id)),
-    [folders],
-  );
-
-  const personalPlaces = useMemo(
-    () =>
-      places.filter(
-        (place) =>
-          place.folder_id == null || !sharedFolderIds.has(place.folder_id),
-      ),
-    [places, sharedFolderIds],
-  );
-
-  const LoadData = useCallback(async () => {
-    setIsLoading(true);
-    const [placesResult, foldersResult] = await Promise.all([
-      LoadPlacesLogic1(),
-      LoadFoldersLogic1(),
-    ]);
-    setPlaces(placesResult.places);
-    setFolders(foldersResult.folders);
-    setErrorMessage(placesResult.error ?? null);
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    void LoadData();
-  }, [LoadData, pathname]);
-
-  useEffect(() => {
-    const HandleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        void LoadData();
-      }
-    };
-
-    document.addEventListener("visibilitychange", HandleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", HandleVisibilityChange);
-    };
-  }, [LoadData]);
-
-  useEffect(() => {
-    const folderParam = searchParams.get("folder");
-    if (!folderParam || isLoading) return;
-
-    const folderId = Number(folderParam);
-    if (Number.isNaN(folderId)) return;
-
-    const folder = folders.find((item) => item.id === folderId);
-    if (folder?.is_shared) {
-      router.replace(`/shared?folder=${folderId}`);
-      return;
-    }
-
-    setSelectedFolder(folderId);
-  }, [searchParams, folders, isLoading, router]);
-
-  const folderNameMap = useMemo(() => {
-    return new Map(personalFolders.map((folder) => [folder.id, folder.name]));
-  }, [personalFolders]);
-
-  const folderCounts = useMemo(() => {
-    const counts = new Map<FolderFilter, number>();
-    counts.set("all", personalPlaces.length);
-    counts.set(
-      "unassigned",
-      personalPlaces.filter((place) => place.folder_id == null).length,
-    );
-    personalFolders.forEach((folder) => {
-      counts.set(
-        folder.id,
-        personalPlaces.filter((place) => place.folder_id === folder.id).length,
-      );
-    });
-    return counts;
-  }, [personalPlaces, personalFolders]);
-
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    personalPlaces.forEach((place) => {
-      place.tags.forEach((tag) => tagSet.add(tag));
-    });
-    return Array.from(tagSet);
-  }, [personalPlaces]);
-
-  const filteredPlaces = useMemo(() => {
-    return personalPlaces.filter((place) => {
-      const folderMatch =
-        selectedFolder === "all" ||
-        (selectedFolder === "unassigned" && place.folder_id == null) ||
-        place.folder_id === selectedFolder;
-      const tagMatch = !selectedTag || place.tags.includes(selectedTag);
-      const visitMatch =
-        visitFilter === "all" ||
-        (visitFilter === "visited" && place.visited) ||
-        (visitFilter === "wish" && !place.visited);
-      return folderMatch && tagMatch && visitMatch;
-    });
-  }, [personalPlaces, selectedFolder, selectedTag, visitFilter]);
-
-  const HandleToggleVisit = async (place: Place) => {
-    setTogglingPlaceId(place.id);
-    const result = await ToggleVisitLogic1(place.id, !Boolean(place.visited));
-    setTogglingPlaceId(null);
-
-    if (result.error || !result.place) {
-      setErrorMessage(result.error ?? "방문 상태 변경에 실패했습니다.");
-      return;
-    }
-
-    setPlaces((prev) =>
-      prev.map((item) =>
-        item.id === place.id ? { ...item, visited: result.place!.visited } : item,
-      ),
-    );
-  };
+  const hasActiveFilters =
+    selectedFolder !== "all" ||
+    selectedTag !== null ||
+    visitFilter !== "all" ||
+    searchQuery.trim().length > 0;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -157,6 +41,30 @@ export default function SAVED_BASIC_01() {
         <div className="flex items-center gap-2">
           <Heart className="h-5 w-5 text-primary" aria-hidden />
           <h1 className="text-lg font-bold text-gray-900">저장소</h1>
+        </div>
+
+        <div className="relative mt-3">
+          <Search
+            className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+            aria-hidden
+          />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="맛집 이름, 주소, 태그, 메모 검색"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pr-9 pl-10 text-sm outline-none focus:border-primary focus:bg-white"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              aria-label="검색어 지우기"
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+          )}
         </div>
       </header>
 
@@ -276,31 +184,37 @@ export default function SAVED_BASIC_01() {
           </p>
         )}
 
-        {!isLoading && !errorMessage && personalPlaces.length > 0 && filteredPlaces.length === 0 && (
-          <div className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-center">
-            <p className="text-sm text-amber-800">
-              선택한 폴더/필터에 맞는 맛집이 없어요.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedFolder("all");
-                setSelectedTag(null);
-                setVisitFilter("all");
-              }}
-              className="mt-2 text-xs font-semibold text-primary underline"
-            >
-              전체 맛집 보기
-            </button>
-          </div>
-        )}
+        {!isLoading &&
+          !errorMessage &&
+          personalPlaces.length > 0 &&
+          filteredPlaces.length === 0 && (
+            <div className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-center">
+              <p className="text-sm text-amber-800">
+                {searchQuery.trim()
+                  ? `"${searchQuery.trim()}"에 맞는 맛집이 없어요.`
+                  : "선택한 폴더/필터에 맞는 맛집이 없어요."}
+              </p>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={HandleResetFilters}
+                  className="mt-2 text-xs font-semibold text-primary underline"
+                >
+                  필터 초기화
+                </button>
+              )}
+            </div>
+          )}
 
-        {!isLoading && !errorMessage && filteredPlaces.length === 0 && personalPlaces.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Heart className="mb-3 h-10 w-10 text-gray-200" aria-hidden />
-            <p className="text-sm text-gray-500">표시할 맛집이 없습니다.</p>
-          </div>
-        )}
+        {!isLoading &&
+          !errorMessage &&
+          filteredPlaces.length === 0 &&
+          personalPlaces.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <Heart className="mb-3 h-10 w-10 text-gray-200" aria-hidden />
+              <p className="text-sm text-gray-500">표시할 맛집이 없습니다.</p>
+            </div>
+          )}
 
         <ul className="space-y-3 pb-4">
           {filteredPlaces.map((place) => (

@@ -1,4 +1,5 @@
 import { CreateSupabaseClient } from "@/lib/supabaseClient";
+import { CompressImageLogic1 } from "@/lib/CompressImageLogic1";
 import { GetLocalUserId } from "@/lib/userId";
 import type { PlaceTimelineMemo } from "@/types/timeline";
 
@@ -86,11 +87,34 @@ export function ValidateTimelinePhotoFilesLogic1(
     }
 
     if (file.size > MAX_PHOTO_SIZE_BYTES) {
-      return { error: "사진 한 장은 5MB 이하로 올려 주세요." };
+      return {
+        error:
+          "사진 용량을 자동으로 줄이지 못했어요. 다른 사진을 선택해 주세요.",
+      };
     }
   }
 
   return {};
+}
+
+async function PrepareTimelinePhotoFilesLogic1(
+  files: File[],
+): Promise<{ files: File[]; error?: string }> {
+  const preparedFiles: File[] = [];
+
+  for (const file of files) {
+    try {
+      preparedFiles.push(await CompressImageLogic1(file));
+    } catch {
+      return {
+        files: [],
+        error:
+          "사진을 자동으로 줄이지 못했어요. JPG·PNG 사진을 선택하거나 용량을 줄여 주세요.",
+      };
+    }
+  }
+
+  return { files: preparedFiles };
 }
 
 async function UploadTimelineMemoPhotosLogic1(
@@ -213,7 +237,13 @@ export async function AddTimelineMemoLogic1(
   photoFiles: File[] = [],
 ): Promise<{ memo?: PlaceTimelineMemo; error?: string }> {
   const trimmed = content.trim();
-  const validation = ValidateTimelinePhotoFilesLogic1(photoFiles);
+  const preparedPhotos = await PrepareTimelinePhotoFilesLogic1(photoFiles);
+
+  if (preparedPhotos.error) {
+    return { error: preparedPhotos.error };
+  }
+
+  const validation = ValidateTimelinePhotoFilesLogic1(preparedPhotos.files);
 
   if (validation.error) {
     return { error: validation.error };
@@ -229,10 +259,10 @@ export async function AddTimelineMemoLogic1(
     const supabase = CreateSupabaseClient();
     let imageUrls: string[] = [];
 
-    if (photoFiles.length > 0) {
+    if (preparedPhotos.files.length > 0) {
       const uploadResult = await UploadTimelineMemoPhotosLogic1(
         placeId,
-        photoFiles,
+        preparedPhotos.files,
       );
 
       if (uploadResult.error || uploadResult.imageUrls.length === 0) {

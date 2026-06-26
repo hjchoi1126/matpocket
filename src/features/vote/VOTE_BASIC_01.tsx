@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, Copy, Loader2, Share2, Users } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Check, Copy, Loader2, Share2, Users } from "lucide-react";
 import VoteBarChart from "@/components/features/VoteBarChart";
 import { useVoteBasic01F } from "@/features/vote/VOTE_BASIC_01F";
 
@@ -24,18 +25,40 @@ export default function VOTE_BASIC_01({ voteRoomId }: VoteBasic01Props) {
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" aria-hidden />
+      <div className="flex min-h-0 flex-1 flex-col">
+        <header className="shrink-0 border-b border-gray-100 bg-white px-4 py-4">
+          <Link
+            href="/saved"
+            className="inline-flex items-center gap-1 rounded-full p-1 text-gray-500 hover:bg-gray-100"
+            aria-label="뒤로 가기"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </header>
+        <div className="flex flex-1 items-center justify-center py-20">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" aria-hidden />
+        </div>
       </div>
     );
   }
 
   if (!voteRoom) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center px-4 py-20 text-center">
-        <p className="text-sm text-gray-500">
-          {errorMessage ?? "투표방을 찾을 수 없습니다."}
-        </p>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <header className="shrink-0 border-b border-gray-100 bg-white px-4 py-4">
+          <Link
+            href="/saved"
+            className="inline-flex items-center gap-1 rounded-full p-1 text-gray-500 hover:bg-gray-100"
+            aria-label="뒤로 가기"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </header>
+        <div className="flex flex-1 flex-col items-center justify-center px-4 py-20 text-center">
+          <p className="text-sm text-gray-500">
+            {errorMessage ?? "투표방을 찾을 수 없습니다."}
+          </p>
+        </div>
       </div>
     );
   }
@@ -45,6 +68,14 @@ export default function VOTE_BASIC_01({ voteRoomId }: VoteBasic01Props) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="shrink-0 border-b border-gray-100 bg-gradient-to-br from-primary/10 to-orange-50 px-4 py-6">
+        <Link
+          href="/saved"
+          className="mb-3 inline-flex items-center gap-1 rounded-full p-1 text-gray-500 hover:bg-white/80"
+          aria-label="뒤로 가기"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span className="text-xs font-medium">저장소</span>
+        </Link>
         <p className="flex items-center gap-1 text-xs font-semibold text-primary">
           <Users className="h-3.5 w-3.5" aria-hidden />
           그룹 투표 공유방
