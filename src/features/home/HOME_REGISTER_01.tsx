@@ -57,7 +57,7 @@ export default function HOME_REGISTER_01({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 z-[100] flex flex-col justify-end">
       <button
         type="button"
         aria-label="닫기"
@@ -100,7 +100,7 @@ export default function HOME_REGISTER_01({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          <div className="space-y-3 pb-6">
+          <div className="space-y-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-500">
                 링크
