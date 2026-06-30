@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gamepad2, Heart, MapPin, Settings, Users, UtensilsCrossed } from "lucide-react";
+import { CalendarDays, Gamepad2, Heart, MapPin, Settings, Users, UtensilsCrossed } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/", label: "홈", icon: UtensilsCrossed },
   { href: "/map", label: "지도", icon: MapPin },
   { href: "/saved", label: "저장소", icon: Heart },
-  { href: "/shared", label: "공유저장소", icon: Users },
+  { href: "/shared", label: "공유", icon: Users },
+  { href: "/calendar", label: "달력", icon: CalendarDays },
   { href: "/play", label: "플레이", icon: Gamepad2 },
   { href: "/settings", label: "설정", icon: Settings },
 ] as const;
@@ -26,8 +27,11 @@ export default function BottomNav() {
               : href === "/play"
                 ? pathname === "/play" || pathname.startsWith("/play/")
                 : href === "/shared"
-                  ? pathname === "/shared"
-                  : pathname.startsWith(href);
+                  ? pathname === "/shared" ||
+                    pathname.startsWith("/shared/")
+                  : href === "/calendar"
+                    ? pathname === "/calendar"
+                    : pathname.startsWith(href);
 
           return (
             <Link

@@ -3,13 +3,11 @@
 import { usePathname } from "next/navigation";
 import { Bell, Loader2, MapPin, X } from "lucide-react";
 import { useGeoNotifierContext } from "@/components/features/GeoNotifierContext";
-import GeoNotifierHeaderButton from "@/components/features/GeoNotifierHeaderButton";
 
 export default function GeoNotifierInner() {
   const pathname = usePathname();
   const hasBottomNav =
     !pathname.startsWith("/vote") && !pathname.startsWith("/share");
-  const isHome = pathname === "/";
   const bannerBottomClass = hasBottomNav
     ? "bottom-[calc(4.5rem+env(safe-area-inset-bottom))]"
     : "bottom-[calc(1rem+env(safe-area-inset-bottom))]";
@@ -30,16 +28,6 @@ export default function GeoNotifierInner() {
 
   return (
     <>
-      {!isHome && (
-        <div className="pointer-events-none fixed inset-x-0 top-0 z-40 mx-auto w-full max-w-md px-4 pt-4">
-          <div className="pointer-events-none flex justify-end">
-            <div className="pointer-events-auto">
-              <GeoNotifierHeaderButton />
-            </div>
-          </div>
-        </div>
-      )}
-
       {isBannerVisible && permissionState !== "active" && (
         <div
           className={`fixed inset-x-0 z-40 mx-auto w-full max-w-md px-4 ${bannerBottomClass}`}

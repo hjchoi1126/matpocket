@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Copy, Link2, Share2, UserRound } from "lucide-react";
+import MainHeaderActions from "@/components/layout/MainHeaderActions";
 import {
   BuildShareUrlLogic1,
   CopyShareLinkLogic1,
@@ -89,7 +90,10 @@ export default function SettingsPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="shrink-0 border-b border-gray-100 bg-white px-4 py-4">
-        <h1 className="text-lg font-bold text-gray-900">설정</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-lg font-bold text-gray-900">설정</h1>
+          <MainHeaderActions />
+        </div>
       </header>
 
       <main className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">

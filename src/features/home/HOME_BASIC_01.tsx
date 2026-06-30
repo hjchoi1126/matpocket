@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { ChefHat, Dices, Loader2, MapPin, Pill, Plus } from "lucide-react";
 import RouletteModal from "@/components/features/RouletteModal";
 import CurationModal from "@/components/features/CurationModal";
-import GeoNotifierHeaderButton from "@/components/features/GeoNotifierHeaderButton";
+import MainHeaderActions from "@/components/layout/MainHeaderActions";
 import { useHomeBasic01F } from "@/features/home/HOME_BASIC_01F";
 import HOME_PLACE_SHEET_01 from "@/features/home/HOME_PLACE_SHEET_01";
 import { useHomeMap01F } from "@/features/home/HOME_MAP_01F";
@@ -34,7 +34,7 @@ export default function HOME_BASIC_01() {
             <ChefHat className="h-5 w-5 text-primary" aria-hidden />
             <h1 className="text-lg font-bold text-gray-900">맛포켓</h1>
           </div>
-          <GeoNotifierHeaderButton />
+          <MainHeaderActions />
         </div>
       </header>
 

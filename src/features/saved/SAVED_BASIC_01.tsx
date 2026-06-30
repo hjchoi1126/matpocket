@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Folder, Heart, MapPin, Search, Tag, Users, X } from "lucide-react";
 import PlaceListItem from "@/components/features/PlaceListItem";
-import PlaceRegisterSheet from "@/components/features/PlaceRegisterSheet";
+import MainHeaderActions from "@/components/layout/MainHeaderActions";
 import { useSavedBasic01F } from "@/features/saved/SAVED_BASIC_01F";
 import type { FolderFilter } from "@/types/folder";
 
@@ -43,11 +43,14 @@ export default function SAVED_BASIC_01() {
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="shrink-0 border-b border-gray-100 bg-white px-4 py-4">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" aria-hidden />
-            <h1 className="text-lg font-bold text-gray-900">저장소</h1>
+          <div className="flex min-w-0 items-center gap-2">
+            <Heart className="h-5 w-5 shrink-0 text-primary" aria-hidden />
+            <h1 className="truncate text-lg font-bold text-gray-900">저장소</h1>
           </div>
-          <PlaceRegisterSheet onSaved={() => void ReloadData()} />
+          <MainHeaderActions
+            showUrlRegister
+            onUrlSaved={() => void ReloadData()}
+          />
         </div>
 
         <div className="relative mt-3">

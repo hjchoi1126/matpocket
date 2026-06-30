@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Folder, Loader2, MapPin, Plus, Search, Tag, Users, X } from "lucide-react";
 import PlaceListItem from "@/components/features/PlaceListItem";
 import SharedFolderPanel from "@/components/features/SharedFolderPanel";
+import MainHeaderActions from "@/components/layout/MainHeaderActions";
 import { useSharedBasic01F } from "@/features/shared/SHARED_BASIC_01F";
 import type { FolderFilter } from "@/types/folder";
 
@@ -48,9 +49,12 @@ export default function SHARED_BASIC_01() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="shrink-0 border-b border-gray-100 bg-white px-4 py-4">
-        <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-violet-600" aria-hidden />
-          <h1 className="text-lg font-bold text-gray-900">공유저장소</h1>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <Users className="h-5 w-5 shrink-0 text-violet-600" aria-hidden />
+            <h1 className="truncate text-lg font-bold text-gray-900">공유저장소</h1>
+          </div>
+          <MainHeaderActions />
         </div>
 
         <div className="relative mt-3">
